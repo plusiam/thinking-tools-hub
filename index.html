@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사고가시화 도구 모음 | Thinking Visualization Toolkit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card-image {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card-image::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s;
+        }
+        
+        .card:hover .card-image::before {
+            animation: shimmer 0.5s ease-in-out;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #7c3aed;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #7c3aed;
+            border: 2px solid #7c3aed;
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            background: #7c3aed;
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .filter-btn {
+            transition: all 0.3s;
+        }
+        
+        .filter-btn.active {
+            background: #7c3aed;
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .search-box {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="bg-white/95 backdrop-blur-md shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-brain text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">사고가시화 도구 모음</h1>
+                        <p class="text-sm text-gray-600">Thinking Visualization Toolkit</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-600 hover:text-purple-600 transition">
+                        <i class="fas fa-info-circle text-xl"></i>
+                    </button>
+                    <button class="text-gray-600 hover:text-purple-600 transition">
+                        <i class="fas fa-cog text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 검색 및 필터 섹션 -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 mb-8">
+            <!-- 검색 박스 -->
+            <div class="relative mb-6">
+                <input 
+                    type="text" 
+                    id="searchInput"
+                    placeholder="도구 검색... (예: 마인드맵, KWL, 루브릭)" 
+                    class="w-full px-12 py-4 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none text-lg"
+                >
+                <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-400 text-xl"></i>
+            </div>
+
+            <!-- 카테고리 필터 -->
+            <div class="flex flex-wrap gap-3">
+                <button class="filter-btn active px-6 py-2 rounded-full bg-gray-100 text-gray-700 font-medium hover:bg-purple-100" data-category="all">
+                    <i class="fas fa-th-large mr-2"></i>전체
+                </button>
+                <button class="filter-btn px-6 py-2 rounded-full bg-gray-100 text-gray-700 font-medium hover:bg-purple-100" data-category="thinking">
+                    <i class="fas fa-lightbulb mr-2"></i>사고도구
+                </button>
+                <button class="filter-btn px-6 py-2 rounded-full bg-gray-100 text-gray-700 font-medium hover:bg-purple-100" data-category="organize">
+                    <i class="fas fa-sitemap mr-2"></i>조직화
+                </button>
+                <button class="filter-btn px-6 py-2 rounded-full bg-gray-100 text-gray-700 font-medium hover:bg-purple-100" data-category="evaluate">
+                    <i class="fas fa-clipboard-check mr-2"></i>평가도구
+                </button>
+                <button class="filter-btn px-6 py-2 rounded-full bg-gray-100 text-gray-700 font-medium hover:bg-purple-100" data-category="collaborate">
+                    <i class="fas fa-users mr-2"></i>협업도구
+                </button>
+            </div>
+        </div>
+
+        <!-- 도구 카드 그리드 -->
+        <div id="toolsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- 도구 카드들이 여기에 동적으로 생성됩니다 -->
+        </div>
+    </div>
+
+    <!-- 플로팅 액션 버튼 -->
+    <button class="fixed bottom-8 right-8 w-14 h-14 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 text-white">
+        <i class="fas fa-plus text-xl"></i>
+    </button>
+
+    <script>
+        // 도구 데이터 (실제 URL로 교체 필요)
+        const tools = [
+            {
+                id: 1,
+                name: "마인드맵",
+                englishName: "Mind Map",
+                category: "thinking",
+                description: "중심 주제에서 가지를 뻗어나가며 아이디어를 시각적으로 정리하는 도구",
+                usage: "브레인스토밍, 개념 정리, 학습 내용 구조화",
+                icon: "fa-project-diagram",
+                color: "from-blue-400 to-blue-600",
+                tags: ["창의성", "아이디어", "구조화"],
+                url: "https://plusiam.github.io/edu-thinking-toolkit/mindmap.html",
+                preview: "🗺️"
+            },
+            {
+                id: 2,
+                name: "KWL 차트",
+                englishName: "KWL Chart",
+                category: "thinking",
+                description: "Know(알고있는 것), Want(알고싶은 것), Learned(배운 것)을 정리",
+                usage: "사전지식 활성화, 학습 목표 설정, 메타인지",
+                icon: "fa-columns",
+                color: "from-green-400 to-green-600",
+                tags: ["메타인지", "학습전략", "자기주도"],
+                url: "https://plusiam.github.io/edu-thinking-toolkit/kwl-chart.html",
+                preview: "📊"
+            },
+            {
+                id: 3,
+                name: "개념도",
+                englishName: "Concept Map",
+                category: "organize",
+                description: "개념들 간의 관계를 노드와 링크로 표현하는 도구",
+                usage: "개념 이해, 지식 구조화, 관계 파악",
+                icon: "fa-network-wired",
+                color: "from-purple-400 to-purple-600",
+                tags: ["개념이해", "관계", "구조화"],
+                url: "https://plusiam.github.io/edu-thinking-toolkit/concept-map.html",
+                preview: "🔗"
+            },
+            {
+                id: 4,
+                name: "피시본 다이어그램",
+                englishName: "Fishbone Diagram",
+                category: "thinking",
+                description: "문제의 원인과 결과를 물고기뼈 모양으로 분석",
+                usage: "문제 해결, 원인 분석, 비판적 사고",
+                icon: "fa-fish",
+                color: "from-orange-400 to-orange-600",
+                tags: ["문제해결", "원인분석", "비판적사고"],
+                url: "https://plusiam.github.io/edu-thinking-toolkit/fishbone.html",
+                preview: "🐟"
+            },
+            {
+                id: 5,
+                name: "루브릭",
+                englishName: "Rubric",
+                category: "evaluate",
+                description: "수행 수준별 평가 기준을 명시한 평가도구",
+                usage: "수행평가, 자기평가, 동료평가",
+                icon: "fa-clipboard-list",
+                color: "from-red-400 to-red-600",
+                tags: ["평가", "루브릭", "수행평가"],
+                url: "https://plusiam.github.io/edu-thinking-toolkit/rubric.html",
+                preview: "📋"
+            },
+            {
+                id: 6,
+                name: "PMI 차트",
+                englishName: "PMI Chart",
+                category: "thinking",
+                description: "Plus(장점), Minus(단점), Interesting(흥미로운 점) 분석",
+                usage: "의사결정, 비판적 사고, 다각도 분석",
+                icon: "fa-balance-scale",
+                color: "from-indigo-400 to-indigo-600",
+                tags: ["의사결정", "분석", "비교"],
+                url: "https://plusiam.github.io/edu-thinking-toolkit/pmi-chart.html",
+                preview: "⚖️"
+            },
+            {
+                id: 7,
+                name: "벤다이어그램",
+                englishName: "Venn Diagram",
+                category: "organize",
+                description: "집합 간의 관계를 원으로 표현하여 공통점과 차이점 분석",
+                usage: "비교 분석, 분류, 관계 파악",
+                icon: "fa-circle-notch",
+                color: "from-pink-400 to-pink-600",
+                tags: ["비교", "분류", "관계"],
+                url: "https://plusiam.github.io/edu-thinking-toolkit/venn-diagram.html",
+                preview: "⭕"
+            },
+            {
+                id: 8,
+                name: "사고 루틴",
+                englishName: "Thinking Routine",
+                category: "thinking",
+                description: "See-Think-Wonder 등 구조화된 사고 프로세스",
+                usage: "관찰력, 추론, 호기심 자극",
+                icon: "fa-route",
+                color: "from-teal-400 to-teal-600",
+                tags: ["관찰", "추론", "탐구"],
+                url: "https://plusiam.github.io/edu-thinking-toolkit/thinking-routine.html",
+                preview: "🔄"
+            },
+            {
+                id: 9,
+                name: "갤러리 워크",
+                englishName: "Gallery Walk",
+                category: "collaborate",
+                description: "학습 결과물을 전시하고 피드백을 주고받는 협력 도구",
+                usage: "동료 학습, 피드백, 전시",
+                icon: "fa-images",
+                color: "from-yellow-400 to-yellow-600",
+                tags: ["협업", "피드백", "전시"],
+                url: "https://plusiam.github.io/edu-thinking-toolkit/gallery-walk.html",
+                preview: "🖼️"
+            },
+            {
+                id: 10,
+                name: "플로우차트",
+                englishName: "Flowchart",
+                category: "organize",
+                description: "프로세스나 알고리즘을 단계별로 시각화",
+                usage: "절차 설명, 알고리즘, 의사결정 과정",
+                icon: "fa-sitemap",
+                color: "from-cyan-400 to-cyan-600",
+                tags: ["프로세스", "절차", "흐름"],
+                url: "https://plusiam.github.io/edu-thinking-toolkit/flowchart.html",
+                preview: "📈"
+            },
+            {
+                id: 11,
+                name: "SWOT 분석",
+                englishName: "SWOT Analysis",
+                category: "thinking",
+                description: "강점, 약점, 기회, 위협을 분석하는 전략 도구",
+                usage: "전략 수립, 자기 분석, 프로젝트 평가",
+                icon: "fa-th",
+                color: "from-gray-400 to-gray-600",
+                tags: ["전략", "분석", "평가"],
+                url: "https://plusiam.github.io/edu-thinking-toolkit/swot.html",
+                preview: "📊"
+            },
+            {
+                id: 12,
+                name: "타임라인",
+                englishName: "Timeline",
+                category: "organize",
+                description: "시간 순서에 따라 사건이나 과정을 정리",
+                usage: "역사 학습, 프로젝트 일정, 스토리텔링",
+                icon: "fa-clock",
+                color: "from-emerald-400 to-emerald-600",
+                tags: ["시간", "순서", "역사"],
+                url: "https://plusiam.github.io/edu-thinking-toolkit/timeline.html",
+                preview: "⏰"
+            }
+        ];
+
+        // 카드 생성 함수
+        function createToolCard(tool) {
+            return `
+                <div class="card bg-white/95 rounded-2xl shadow-lg overflow-hidden" data-category="${tool.category}" data-name="${tool.name} ${tool.englishName}">
+                    <!-- 카드 이미지/아이콘 영역 -->
+                    <div class="card-image h-40 bg-gradient-to-br ${tool.color} flex items-center justify-center relative">
+                        <div class="text-6xl">${tool.preview}</div>
+                        <div class="absolute top-3 right-3 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
+                            <span class="text-white text-xs font-medium">${tool.englishName}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 카드 내용 -->
+                    <div class="p-5">
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">${tool.name}</h3>
+                        <p class="text-gray-600 text-sm mb-3">${tool.description}</p>
+                        
+                        <!-- 활용 방법 -->
+                        <div class="mb-4">
+                            <p class="text-xs text-gray-500 mb-1">💡 활용</p>
+                            <p class="text-sm text-gray-700">${tool.usage}</p>
+                        </div>
+                        
+                        <!-- 태그 -->
+                        <div class="mb-4">
+                            ${tool.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                        
+                        <!-- 액션 버튼 -->
+                        <div class="flex gap-2">
+                            <button onclick="openTool('${tool.url}', true)" class="btn-primary flex-1 py-2 px-4 rounded-lg text-white font-medium text-sm">
+                                <i class="fas fa-external-link-alt mr-2"></i>새 창에서 열기
+                            </button>
+                            <button onclick="openTool('${tool.url}', false)" class="btn-secondary flex-1 py-2 px-4 rounded-lg font-medium text-sm">
+                                <i class="fas fa-play mr-2"></i>바로 사용
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 도구 열기 함수
+        function openTool(url, newWindow = true) {
+            if (newWindow) {
+                window.open(url, '_blank');
+            } else {
+                window.location.href = url;
+            }
+        }
+
+        // 초기 렌더링
+        function renderTools(toolsToRender = tools) {
+            const grid = document.getElementById('toolsGrid');
+            grid.innerHTML = toolsToRender.map(tool => createToolCard(tool)).join('');
+        }
+
+        // 필터링 기능
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // 활성 클래스 토글
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const category = this.dataset.category;
+                const cards = document.querySelectorAll('.card');
+                
+                cards.forEach(card => {
+                    if (category === 'all' || card.dataset.category === category) {
+                        card.style.display = 'block';
+                        setTimeout(() => {
+                            card.style.opacity = '1';
+                            card.style.transform = 'scale(1)';
+                        }, 10);
+                    } else {
+                        card.style.opacity = '0';
+                        card.style.transform = 'scale(0.8)';
+                        setTimeout(() => {
+                            card.style.display = 'none';
+                        }, 300);
+                    }
+                });
+            });
+        });
+
+        // 검색 기능
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.card');
+            
+            cards.forEach(card => {
+                const name = card.dataset.name.toLowerCase();
+                if (name.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    card.style.opacity = '1';
+                } else {
+                    card.style.opacity = '0';
+                    setTimeout(() => {
+                        card.style.display = 'none';
+                    }, 300);
+                }
+            });
+        });
+
+        // 페이지 로드 시 도구 렌더링
+        renderTools();
+
+        // 플로팅 버튼 클릭 이벤트
+        document.querySelector('.fixed.bottom-8').addEventListener('click', function() {
+            alert('새 도구 추가 기능은 준비 중입니다! 🚀');
+        });
+    </script>
+</body>
+</html>
